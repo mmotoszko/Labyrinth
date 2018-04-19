@@ -1,0 +1,160 @@
+﻿<Window x:Class="si_labirynt.MainWindow"
+        x:Name="MainWindowName"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Labirynt" Height="500" Width="540" MinWidth="540"
+        Icon="Media/Icon.ico" 
+        PreviewKeyDown="Window_KeyDown" >
+
+    <Window.Resources>
+        <BitmapImage x:Key="ImgStart" UriSource="Media/Start.ico" />
+        <BitmapImage x:Key="ImgStop" UriSource="Media/Stop.ico" />
+    </Window.Resources>
+
+    <Grid x:Name="MainGrid" Margin="0" DockPanel.Dock="Top">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Popup Name="PopupBar" AllowsTransparency="True" PlacementTarget="{Binding ElementName=MainGrid}" Placement="Center">
+            <Grid Height="30" Width="300" Margin="20" Background="White">
+                <ProgressBar Minimum="0" Maximum="100" Value="0" Name="BarStatus"/>
+                <TextBlock Margin="20 0 0 0" Text="{Binding ElementName=BarStatus, Path=Value, StringFormat={}{0:0}%}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <TextBlock x:Name="BarOperacja" Margin="20 0 0 0" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                <TextBlock x:Name="BarKroki" Margin="0 0 20 0" HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
+        </Popup>
+
+        <DockPanel Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2">
+            <Menu x:Name="WholeMenu"  DockPanel.Dock="Top" Height="25">
+                <MenuItem x:Name="MenuFile" Margin="0 1 0 0" Header="_Plik">
+                    <MenuItem x:Name="MenuNew" Header="_Nowy" Click="NewFile"/>
+                    <MenuItem x:Name="MenuEdit" Header="_Edytuj" Click="EditFile"/>
+                    <MenuItem x:Name="MenuOpen" Header="_Otwórz" Click="OpenFile"/>
+                    <MenuItem x:Name="MenuSaveMatrix" Header="_Zapisz jako..." Click="SaveFile"/>
+                </MenuItem>
+                <MenuItem x:Name="MenuHelp" Margin="0 1 0 0" Header="_Pomoc">
+                    <MenuItem x:Name="MenuInfo" Header="_O programie" Click="ShowInfo"/>
+                </MenuItem>
+                <MenuItem x:Name="MenuSpeed" Margin="0 1 0 0">
+                    <MenuItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <ContentPresenter Content="Czas rysowania"></ContentPresenter>
+                            <ComboBox x:Name="SpeedComboBox" Margin="10 0 0 0" SelectionChanged="SetDrawInterval">
+                                <ComboBoxItem>1</ComboBoxItem>
+                                <ComboBoxItem>0.5</ComboBoxItem>
+                                <ComboBoxItem IsSelected="True">0.2</ComboBoxItem>
+                                <ComboBoxItem>0.05</ComboBoxItem>
+                                <ComboBoxItem>0.01</ComboBoxItem>
+                                <ComboBoxItem>0</ComboBoxItem>
+                            </ComboBox>
+                        </StackPanel>
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem x:Name="MenuChoice" Margin="0 1 0 0" Header="Wybrany algorytm: DFS">
+                    <MenuItem x:Name="MenuDFS" Header="DFS" Click="ChangeAlg"/>
+                    <MenuItem x:Name="MenuBFS" Header="BFS" Click="ChangeAlg"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem x:Name="MenuGo" Click="StartSimulation">
+                    <MenuItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <ContentPresenter Margin="0 1 0 0" Content="Start"></ContentPresenter>
+                            <Image Margin="5 0 0 0" Width="10" Height="10" Source="{StaticResource ImgStart}"/>
+                        </StackPanel>
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem x:Name="MenuStop" Click="StopSimulation">
+                    <MenuItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <ContentPresenter Margin="0 1 0 0" Content="Stop"></ContentPresenter>
+                            <Image Margin="5 0 0 0" Width="10" Height="10" Source="{StaticResource ImgStop}"/>
+                        </StackPanel>
+                    </MenuItem.Header>
+                </MenuItem>
+            </Menu>
+            <StackPanel></StackPanel>
+        </DockPanel>
+
+        <TextBlock Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" x:Name="EditTip" Background="White" Height="20" Margin="20 10 0 0">
+            Kliknij na węzeł aby go wybrać. Ściany można ustawiać strzałkami.
+        </TextBlock>
+        <ScrollViewer  Grid.Column="0" Grid.Row="2" Background="White" Margin="20 10 0 0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" CanContentScroll="True">
+            <Canvas MouseLeftButtonDown="Canvas_MouseLeftButtonDown" Margin="1" x:Name="canvas1" Background="White" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        </ScrollViewer>
+
+        <ScrollViewer Background="White" Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto"
+                      CanContentScroll="True">
+            <Grid x:Name="GridEdit" Margin="0 20 0 0">
+                <Grid.Resources>
+                    <Style TargetType="{x:Type Label}">
+                        <Setter Property="Margin" Value="3,3,3,3" />
+                    </Style>
+                    <Style TargetType="{x:Type TextBox}">
+                        <Setter Property="Margin" Value="3,3,3,3" />
+                    </Style>
+                    <Style TargetType="{x:Type Button}">
+                        <Setter Property="Margin" Value="10,5,10,5" />
+                        <Setter Property="Padding" Value="10,3,10,3" />
+                    </Style>
+                    <Style TargetType="{x:Type RadioButton}">
+                        <Setter Property="Margin" Value="10,3,10,2" />
+                        <Setter Property="Padding" Value="10,1,10,1" />
+                    </Style>
+                </Grid.Resources>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="32"/>
+                    <RowDefinition Height="32"/>
+                    <RowDefinition Height="32"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="32"/>
+                    <ColumnDefinition Width="32"/>
+                    <ColumnDefinition Width="32"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2">Kolumny:</Label>
+                <Label Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2">Wiersze</Label>
+                <Label x:Name="lblColumns" Margin="-5 3 2 2" Grid.Column="3" Grid.Row="0">0</Label>
+                <Label x:Name="lblRows" Margin="-5 3 2 2" Grid.Column="3" Grid.Row="1">0</Label>
+                <Separator Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3"/>
+                <Label Grid.Column="1" Grid.Row="3">X:</Label>
+                <Label x:Name="lblX" Grid.Column="2" Grid.Row="3">0</Label>
+                <Label Grid.Column="1" Grid.Row="4">Y:</Label>
+                <Label x:Name="lblY" Grid.Column="2" Grid.Row="4">0</Label>
+                <Label Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="3" HorizontalAlignment="Center">Ściany</Label>
+                <CheckBox x:Name="cLeft" Grid.Column="0" Grid.Row="7" HorizontalAlignment="Center" VerticalAlignment="Center" Unchecked="modifyWalls" Checked="modifyWalls"/>
+                <CheckBox x:Name="cUp" Grid.Column="1" Grid.Row="6" HorizontalAlignment="Center" VerticalAlignment="Center" Unchecked="modifyWalls" Checked="modifyWalls"/>
+                <CheckBox x:Name="cRight" Grid.Column="2" Grid.Row="7" HorizontalAlignment="Center" VerticalAlignment="Center" Unchecked="modifyWalls" Checked="modifyWalls"/>
+                <CheckBox x:Name="cDown" Grid.Column="1" Grid.Row="8" HorizontalAlignment="Center" VerticalAlignment="Center" Unchecked="modifyWalls" Checked="modifyWalls"/>
+                <RadioButton x:Name="Startowy" Grid.Column="0" Grid.Row="9" Grid.ColumnSpan="3" Checked="Node_Checked">Startowy</RadioButton>
+                <RadioButton x:Name="Koncowy" Grid.Column="0" Grid.Row="10" Grid.ColumnSpan="3" Checked="Node_Checked">Koncowy</RadioButton>
+                <RadioButton x:Name="Zwykly" Grid.Column="0" Grid.Row="11" Grid.ColumnSpan="3" Checked="Node_Checked">Zwykly</RadioButton>
+                <Button x:Name="ZakEdycje" Grid.Column="0" Grid.Row="12" Grid.ColumnSpan="3" Click="EndEditing">
+                    <Button.Content>
+                        <TextBlock VerticalAlignment="Center" TextWrapping="Wrap">Zakończ Edycję</TextBlock>
+                    </Button.Content>
+                </Button>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</Window>
